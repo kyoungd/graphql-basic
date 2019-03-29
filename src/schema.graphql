@@ -1,0 +1,91 @@
+  type Query {
+    users(query: String): [User!]!
+    me: User,
+    posts(query: String): [Post!]!,
+    comments(query: String): [Comment!],
+  }
+
+  type Mutation {
+    createUser(data: CreateUserInput!): User!
+    deleteUser(id: ID!): User!
+    updateUser(data: UpdateUserInput!): User!
+    createPost(data: CreatePostInput!): Post!
+    updatePost(data: UpdatePostInput!): Post!
+    deletePost(id: ID!): Post!
+    createComment(data: CreateCommentInput!): Comment!
+    updateComment(data: UpdateCommentInput!): Comment!
+    deleteComment(id: ID!): Comment!
+  }
+
+  type Subscription {
+    count: Int!
+    comment(postId: ID!): Comment!
+    post(userId: ID!):  PostSubscriptionPayload!
+  }
+
+  input CreateUserInput{
+    id: String, 
+    name: String!, 
+    email: String!, 
+    age: Int
+  }
+
+  input UpdateUserInput {
+    id: ID!,
+    name: String,
+    email: String,
+    age: Int
+  }
+
+  input CreatePostInput {
+    id: String, 
+    title: String!, 
+    body: String!, 
+    published: Boolean!, 
+    author: ID!
+  }
+
+  input UpdatePostInput {
+    id: String!, 
+    title: String, 
+    body: String, 
+    published: Boolean, 
+  }
+
+  input CreateCommentInput {
+    text: String!, 
+    entry: ID!
+  }
+
+  input UpdateCommentInput {
+    id: ID!,
+    text: String!
+  }
+
+  type User {
+    id: ID!,
+    name: String!,
+    email: String!,
+    age: Int,
+    posts: [Post!],
+  }
+
+  type Post {
+    id: ID!,
+    title: String!,
+    body: String!,
+    published: Boolean!,
+    author: User!,
+    comments: [Comment!]!
+  }
+
+  type Comment {
+    id: ID!,
+    text: String,
+    entry: Post!,
+  }
+
+  type PostSubscriptionPayload {
+    action: String,
+    data: Post!
+  }
