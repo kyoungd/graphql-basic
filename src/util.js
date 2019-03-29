@@ -2,4 +2,9 @@ const pubsubPostName = (userId) => {
   return `Post u-${userId}`;
 }
 
-export { pubsubPostName }
+const pubsubCommentName = (postId) => {
+  return `comment ${postId}`;
+}
+
+    
+export { pubsubPostName, pubsubCommentName }

@@ -1,4 +1,4 @@
-import { pubsubPostName } from '../util';
+import { pubsubPostName, pubsubCommentName } from '../util';
 
 const Subscription = {
   count: {
@@ -17,9 +17,9 @@ const Subscription = {
   comment: {
     subscribe(parent, { postId }, { db, pubsub }, info) {
       const post = db.postList.find(p => p.id === postId && p.published)
-      if (!post)
+      if (!post) 
         throw new Error('Post not found');
-      const chanName = `comment ${postId}`; 
+      const chanName = pubsubCommentName(postId); 
       return pubsub.asyncIterator(chanName);
     }
   },

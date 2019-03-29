@@ -1,5 +1,5 @@
 import uuidv4 from 'uuid/v4';
-import { pubsubPostName } from '../util';
+import { pubsubPostName, pubsubCommentName } from '../util';
 
 const Mutation = {
   createUser(parent, args, { db }, info) {
@@ -57,7 +57,7 @@ const Mutation = {
     pubsub.publish(chanName, chanValue)
     return post;
   },
-  updatePost(parent, args, { db }, info) {
+  updatePost(parent, args, { db, pubsub }, info) {
     const { data } = args;
     const post = db.postList.find(p => p.id === data.id);
     if (!post)
@@ -65,29 +65,41 @@ const Mutation = {
     post.title = (typeof data.title === 'string' ? data.title : post.title);
     post.body = (typeof data.body === 'string' ? data.body : post.body);
     post.published = (typeof data.published === 'string' ? data.published : post.published);
+    const chanName = pubsubPostName(post.author);
+    const chanValue = { post: {
+      action: "UPDATED",
+      data: post
+    }}
+    pubsub.publish(chanName, chanValue)
     return post;
   },
-  deletePost(parent, args, { db }, info) {
-    const isPostExist = db.PostList.some(p => p.id === args.id)
-    if (!isPostExist)
+  deletePost(parent, args, { db, pubsub }, info) {
+    const isPostExist = db.postList.some(p => p.id === args.id)
+    if (!isPostExist) 
       throw new Error('Post does not exist');
     const arrayIndex = db.postList.findIndex(p => p.id === args.id);
     const posts = db.postList.splice(arrayIndex, 1);
     db.commentList = db.commentList.filter(c => c.entry !== args.id);
     db.postList = db.postList.filter(p => p.id !== args.id);
-    return post[0];
+    const chanName = pubsubPostName(posts[0].author);
+    const chanValue = { post: {
+      action: "DELETED",
+      data: posts[0]
+    }}
+    pubsub.publish(chanName, chanValue);
+    return posts[0];
   },
   createComment(parent, args, { db, pubsub }, info) {
-    const isPostExist = db.postList.some(p => p.id === args.data.id);
-    if (isPostExist)
-      throw new Error("Post already exist.");
     const comment = {
       id: uuidv4(),
       ...args.data,
     }
     db.commentList.push(comment);
-    const pubChan = `comment ${args.data.entry}`;
-    const pubValue = { comment }
+    const pubChan = pubsubCommentName(comment.entry);
+    const pubValue = {comment: { 
+      action: "CREATED",
+      data: comment
+    }}
     pubsub.publish(pubChan, pubValue)
     return comment;
   },
@@ -97,6 +109,12 @@ const Mutation = {
     if (!comment)
       throw new Error('Comment does not exist.');
     comment.text = data.text;
+    const pubChan = pubsubCommentName(comment.entry);
+    const pubValue = {comment: { 
+      action: "UPDATED",
+      data: comment
+    }}
+    pubsub.publish(pubChan, pubValue)
     return comment;
   },
   deleteComment(parent, args, { db }, info) {
@@ -105,6 +123,12 @@ const Mutation = {
       throw new Error("Post does not exist.");
     const arrayIndex = db.commentList.findIndex(c => c.id === args.id);
     const comments = db.commentList.splice(arrayIndex, 1);
+    const pubChan = pubsubCommentName(comments[0].entry);
+    const pubValue = {comment: { 
+      action: "DELETED",
+      data: comments[0]
+    }}
+    pubsub.publish(pubChan, pubValue)
     return comments[0];
   }
 }
