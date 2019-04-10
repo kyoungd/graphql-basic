@@ -85,12 +85,18 @@
     entry: Post!,
   }
 
+  enum MutationType {
+    CREATED
+    UPDATED
+    DELETED
+  }
+
   type PostSubscriptionPayload {
-    action: String,
+    action: MutationType,
     data: Post!
   }
 
   type CommentSubscriptionPayload {
-    action: String,
+    action: MutationType,
     data: Comment!
   }
